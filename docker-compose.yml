@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nsb-postgres
+    environment:
+      POSTGRES_DB: nsb_uz
+      POSTGRES_USER: nsb_admin
+      POSTGRES_PASSWORD: nsb_secret_2024
+    ports: ['5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nsb_admin -d nsb_uz']
+      interval: 10s
+      retries: 5
+
+  backend:
+    build: { context: ./backend, dockerfile: ../docker/Dockerfile.backend }
+    container_name: nsb-backend
+    depends_on: { postgres: { condition: service_healthy } }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/nsb_uz
+      DB_USERNAME: nsb_admin
+      DB_PASSWORD: nsb_secret_2024
+    ports: ['8080:8080']
+
+  frontend:
+    build: { context: ./frontend, dockerfile: ../docker/Dockerfile.frontend }
+    container_name: nsb-frontend
+    depends_on: [backend]
+    environment: { REACT_APP_API_URL: 'http://localhost:8080/api' }
+    ports: ['3000:3000']
+    volumes: ['./frontend/src:/app/src', '/app/node_modules']
+
+volumes:
+  pgdata:
