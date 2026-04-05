@@ -10,7 +10,8 @@ services:
     ports: ['5432:5432']
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./database/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U nsb_admin -d nsb_uz']
       interval: 10s
@@ -24,15 +25,21 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/nsb_uz
       DB_USERNAME: nsb_admin
       DB_PASSWORD: nsb_secret_2024
+      APP_UPLOAD_DIR: /app/uploads
     ports: ['8080:8080']
+    volumes:
+      - uploads:/app/uploads
 
   frontend:
     build: { context: ./frontend, dockerfile: ../docker/Dockerfile.frontend }
     container_name: nsb-frontend
     depends_on: [backend]
-    environment: { REACT_APP_API_URL: 'http://localhost:8080/api' }
+    environment: 
+      REACT_APP_API_URL: 'http://localhost:8080/api'
+      REACT_APP_BACKEND_URL: 'http://backend:8080'
     ports: ['3000:3000']
     volumes: ['./frontend/src:/app/src', '/app/node_modules']
 
 volumes:
   pgdata:
+  uploads:

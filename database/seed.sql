@@ -1,9 +1,6 @@
 -- NSB.uz Seed Data — PostgreSQL 15+
 
--- Admin user (password: admin123)
-INSERT INTO users (name, email, password, role, phone, blocked, created_at, updated_at)
-VALUES ('Admin', 'admin@nsb.uz', '$2a$12$LJ3TkhD5v0zV0YRzqPVD0ePSaJkHj5.mBQxGhU8NjQ6q0kF8TLxWK', 'ADMIN', '+998901234567', false, NOW(), NOW())
-ON CONFLICT (email) DO NOTHING;
+-- Admin user is created by DataInitializer.java with password: admin123
 
 -- Categories
 INSERT INTO categories (id, name, slug, icon_url, description, sort_order, created_at, updated_at) VALUES

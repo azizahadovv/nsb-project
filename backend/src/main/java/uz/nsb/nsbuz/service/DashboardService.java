@@ -16,7 +16,7 @@ public class DashboardService {
 
     public DashboardStats getStats() {
         return DashboardStats.builder()
-                .totalProducts(productRepo.countByIsActiveTrue())
+                .totalProducts(productRepo.countByIsActiveTrueAndDeletedFalse())
                 .totalOrders(orderRepo.count())
                 .totalUsers(userRepo.count())
                 .newOrders(orderRepo.countByStatus(Order.Status.NEW))
