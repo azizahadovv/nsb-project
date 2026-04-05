@@ -18,7 +18,7 @@ public class ServiceService {
     private final ServiceMapper mapper;
 
     public List<ServiceEntity> getAll() {
-        return repo.findAllByOrderBySortOrderAsc();
+        return repo.findByDeletedFalseOrderBySortOrderAsc();
     }
 
     @Transactional
@@ -31,12 +31,17 @@ public class ServiceService {
 
     @Transactional
     public ServiceEntity update(Long id, ServiceEntity req) {
-        ServiceEntity svc = repo.findById(id)
+        ServiceEntity svc = repo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", id));
         mapper.updateEntity(svc, req);
         return repo.save(svc);
     }
 
     @Transactional
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) { 
+        ServiceEntity svc = repo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Service", "id", id));
+        svc.setDeleted(true);
+        repo.save(svc);
+    }
 }

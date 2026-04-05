@@ -17,7 +17,8 @@ public class PortfolioService {
     private final PortfolioMapper mapper;
 
     public Page<Portfolio> getAll(int page, int size) {
-        return repo.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return repo.findByDeletedFalse(pageable);
     }
 
     @Transactional
@@ -25,12 +26,17 @@ public class PortfolioService {
 
     @Transactional
     public Portfolio update(Long id, Portfolio req) {
-        Portfolio p = repo.findById(id)
+        Portfolio p = repo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Portfolio", "id", id));
         mapper.updateEntity(p, req);
         return repo.save(p);
     }
 
     @Transactional
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) { 
+        Portfolio p = repo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Portfolio", "id", id));
+        p.setDeleted(true);
+        repo.save(p);
+    }
 }

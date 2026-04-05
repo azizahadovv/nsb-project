@@ -18,11 +18,11 @@ public class BannerService {
     private final BannerMapper mapper;
 
     public List<Banner> getAll() {
-        return repo.findAll();
+        return repo.findByDeletedFalseOrderBySortOrderAsc();
     }
 
     public List<Banner> getActive() {
-        return repo.findByIsActiveTrueOrderBySortOrderAsc();
+        return repo.findByIsActiveTrueAndDeletedFalseOrderBySortOrderAsc();
     }
 
     @Transactional
@@ -32,12 +32,17 @@ public class BannerService {
 
     @Transactional
     public Banner update(Long id, BannerRequest req) {
-        Banner b = repo.findById(id)
+        Banner b = repo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
         mapper.updateEntity(b, req);
         return repo.save(b);
     }
 
     @Transactional
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) { 
+        Banner b = repo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
+        b.setDeleted(true);
+        repo.save(b);
+    }
 }

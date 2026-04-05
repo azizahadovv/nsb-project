@@ -18,18 +18,18 @@ public class CategoryService {
     private final CategoryMapper mapper;
 
     public List<Category> getAll() {
-        return repo.findAll();
+        return repo.findByDeletedFalseOrderBySortOrderAsc();
     }
 
     public List<Category> getRoots() {
-        return repo.findByParentIsNullOrderBySortOrderAsc();
+        return repo.findByParentIsNullAndDeletedFalseOrderBySortOrderAsc();
     }
 
     @Transactional
     public Category create(CategoryRequest req) {
         Category cat = mapper.toEntity(req);
         if (req.getParentId() != null) {
-            cat.setParent(repo.findById(req.getParentId()).orElse(null));
+            cat.setParent(repo.findByIdAndDeletedFalse(req.getParentId()).orElse(null));
         }
         return repo.save(cat);
     }
@@ -39,16 +39,20 @@ public class CategoryService {
         Category cat = findById(id);
         mapper.updateEntity(cat, req);
         if (req.getParentId() != null) {
-            cat.setParent(repo.findById(req.getParentId()).orElse(null));
+            cat.setParent(repo.findByIdAndDeletedFalse(req.getParentId()).orElse(null));
         }
         return repo.save(cat);
     }
 
     @Transactional
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) { 
+        Category cat = findById(id);
+        cat.setDeleted(true);
+        repo.save(cat);
+    }
 
     private Category findById(Long id) {
-        return repo.findById(id)
+        return repo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
     }
 }

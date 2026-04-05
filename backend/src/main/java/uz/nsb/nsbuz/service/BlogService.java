@@ -20,12 +20,12 @@ public class BlogService {
     private final BlogMapper mapper;
 
     public Page<BlogResponse> getPublished(int page, int size) {
-        return blogRepo.findByPublishedTrueOrderByCreatedAtDesc(PageRequest.of(page, size))
+        return blogRepo.findByPublishedTrueAndDeletedFalseOrderByCreatedAtDesc(PageRequest.of(page, size))
                 .map(mapper::toResponse);
     }
 
     public BlogResponse getBySlug(String slug) {
-        return mapper.toResponse(blogRepo.findBySlug(slug)
+        return mapper.toResponse(blogRepo.findBySlugAndDeletedFalse(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog", "slug", slug)));
     }
 
@@ -36,7 +36,7 @@ public class BlogService {
 
     @Transactional
     public BlogResponse update(Long id, BlogRequest req) {
-        Blog blog = blogRepo.findById(id)
+        Blog blog = blogRepo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog", "id", id));
         blog.setTitle(req.getTitle());
         blog.setSlug(SlugUtil.toSlug(req.getTitle()));
@@ -51,10 +51,15 @@ public class BlogService {
     }
 
     @Transactional
-    public void delete(Long id) { blogRepo.deleteById(id); }
+    public void delete(Long id) { 
+        Blog blog = blogRepo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog", "id", id));
+        blog.setDeleted(true);
+        blogRepo.save(blog);
+    }
 
     public Page<BlogResponse> getAll(int page, int size) {
-        return blogRepo.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()))
-                .map(mapper::toResponse);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return blogRepo.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
 }

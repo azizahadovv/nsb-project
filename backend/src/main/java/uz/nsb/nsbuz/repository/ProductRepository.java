@@ -9,18 +9,20 @@ import uz.nsb.nsbuz.model.Product;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Optional<Product> findBySlug(String slug);
-    Page<Product> findByCategorySlugAndIsActiveTrue(String slug, Pageable p);
+    Optional<Product> findBySlugAndDeletedFalse(String slug);
+    Optional<Product> findByIdAndDeletedFalse(Long id);
+    Page<Product> findByDeletedFalse(Pageable p);
+    Page<Product> findByCategorySlugAndIsActiveTrueAndDeletedFalse(String slug, Pageable p);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true ORDER BY p.salesCount DESC")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.deleted = false ORDER BY p.salesCount DESC")
     Page<Product> findPopular(Pageable p);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.oldPrice IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.deleted = false AND p.oldPrice IS NOT NULL")
     Page<Product> findOnSale(Pageable p);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true AND " +
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.deleted = false AND " +
            "(LOWER(p.name) LIKE LOWER(CONCAT('%',:q,'%')))")
     Page<Product> search(@Param("q") String query, Pageable p);
 
-    long countByIsActiveTrue();
+    long countByIsActiveTrueAndDeletedFalse();
 }

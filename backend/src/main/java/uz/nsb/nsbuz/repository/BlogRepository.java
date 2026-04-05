@@ -7,6 +7,8 @@ import uz.nsb.nsbuz.model.Blog;
 import java.util.Optional;
 
 public interface BlogRepository extends JpaRepository<Blog, Long> {
-    Optional<Blog> findBySlug(String slug);
-    Page<Blog> findByPublishedTrueOrderByCreatedAtDesc(Pageable p);
+    Optional<Blog> findBySlugAndDeletedFalse(String slug);
+    Optional<Blog> findByIdAndDeletedFalse(Long id);
+    Page<Blog> findByDeletedFalse(Pageable p);
+    Page<Blog> findByPublishedTrueAndDeletedFalseOrderByCreatedAtDesc(Pageable p);
 }

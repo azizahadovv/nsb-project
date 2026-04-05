@@ -8,6 +8,7 @@
     "react-router-dom": "^6.20.0",
     "react-scripts": "5.0.1",
     "axios": "^1.6.2",
+    "http-proxy-middleware": "^2.0.6",
     "swiper": "^11.0.5",
     "framer-motion": "^10.16.5",
     "react-icons": "^4.12.0",
@@ -29,7 +30,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
-  "proxy": "http://localhost:8080",
   "browserslist": {
     "production": [
       ">0.2%",

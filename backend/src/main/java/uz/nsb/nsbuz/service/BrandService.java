@@ -14,7 +14,7 @@ import java.util.List;
 public class BrandService {
     private final BrandRepository repo;
 
-    public List<Brand> getAll() { return repo.findAllByOrderBySortOrderAsc(); }
+    public List<Brand> getAll() { return repo.findByDeletedFalseOrderBySortOrderAsc(); }
 
     @Transactional
     public Brand create(Brand b) {
@@ -24,7 +24,8 @@ public class BrandService {
 
     @Transactional
     public Brand update(Long id, Brand req) {
-        Brand b = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Brand", "id", id));
+        Brand b = repo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Brand", "id", id));
         b.setName(req.getName());
         b.setSlug(SlugUtil.toSlug(req.getName()));
         b.setLogoUrl(req.getLogoUrl());
@@ -33,5 +34,10 @@ public class BrandService {
     }
 
     @Transactional
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) { 
+        Brand b = repo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Brand", "id", id));
+        b.setDeleted(true);
+        repo.save(b);
+    }
 }

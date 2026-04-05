@@ -22,15 +22,15 @@ public class ProductService {
     private final ProductMapper mapper;
 
     public Page<ProductResponse> getAll(int p, int sz, String sort) {
-        return productRepo.findAll(pageable(p, sz, sort)).map(mapper::toResponse);
+        return productRepo.findByDeletedFalse(pageable(p, sz, sort)).map(mapper::toResponse);
     }
     public ProductResponse getById(Long id) { return mapper.toResponse(findById(id)); }
     public ProductResponse getBySlug(String slug) {
-        return mapper.toResponse(productRepo.findBySlug(slug)
+        return mapper.toResponse(productRepo.findBySlugAndDeletedFalse(slug)
             .orElseThrow(() -> new ResourceNotFoundException("Product", "slug", slug)));
     }
     public Page<ProductResponse> getByCategory(String s, int p, int sz, String sort) {
-        return productRepo.findByCategorySlugAndIsActiveTrue(s, pageable(p, sz, sort)).map(mapper::toResponse);
+        return productRepo.findByCategorySlugAndIsActiveTrueAndDeletedFalse(s, pageable(p, sz, sort)).map(mapper::toResponse);
     }
     public Page<ProductResponse> getPopular(int p, int sz) {
         return productRepo.findPopular(PageRequest.of(p, sz)).map(mapper::toResponse);
@@ -39,7 +39,8 @@ public class ProductService {
         return productRepo.findOnSale(PageRequest.of(p, sz)).map(mapper::toResponse);
     }
     public Page<ProductResponse> getNewest(int p, int sz) {
-        return productRepo.findAll(PageRequest.of(p, sz, Sort.by("createdAt").descending())).map(mapper::toResponse);
+        Pageable pageable = PageRequest.of(p, sz, Sort.by("createdAt").descending());
+        return productRepo.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
     public Page<ProductResponse> search(String q, int p, int sz) {
         return productRepo.search(q, PageRequest.of(p, sz)).map(mapper::toResponse);
@@ -75,10 +76,15 @@ public class ProductService {
     }
 
     @Transactional
-    public void delete(Long id) { productRepo.delete(findById(id)); }
+    public void delete(Long id) { 
+        Product p = findById(id);
+        p.setDeleted(true);
+        productRepo.save(p);
+    }
 
     private Product findById(Long id) {
-        return productRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
+        return productRepo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
     }
     private Pageable pageable(int page, int size, String sort) {
         Sort s = switch (sort != null ? sort : "popular") {
