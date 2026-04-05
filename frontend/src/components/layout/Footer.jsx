@@ -25,7 +25,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div className="col-span-2 lg:col-span-1">
             <Link to="/" className="font-display font-extrabold text-xl text-white block mb-2" aria-label="Bosh sahifa">NSB<span className="text-accent-500">.uz</span></Link>
-            <p className="text-xs leading-relaxed mb-3">Kompyuter texnikasi va quyosh energetikasi. 2018 yildan beri.</p>
+            <p className="text-xs leading-relaxed mb-3">Kompyuter texnikasi va quyosh energetikasi. 2018 yildan beri.Kompyuter texnikasi va quyosh energetikasi. 2018 yildan beriKompyuter texnikasi va quyosh energetikasi. 2018 yildan beriKompyuter texnikasi va quyosh energetikasi. 2018 yildan beri</p>
             <div className="flex gap-2">{[FaTelegramPlane,FaInstagram,FaFacebookF].map((Icon,i) => <a key={i} href="#" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Ijtimoiy tarmoq"><Icon /></a>)}</div>
           </div>
           {LINKS.map((col) => <div key={col.title}><h5 className="text-white font-bold text-sm mb-3">{col.title}</h5><ul className="space-y-1.5">{col.items.map(([n,to]) => <li key={to}><Link to={to} className="text-xs hover:text-white transition-colors">{n}</Link></li>)}</ul></div>)}

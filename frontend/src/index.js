@@ -14,7 +14,9 @@ import './styles/globals.scss';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{
+    v7_startTransition: true
+  }}>
       <HelmetProvider>
         <ErrorBoundary>
           <AuthProvider><WishlistProvider><CartProvider>
