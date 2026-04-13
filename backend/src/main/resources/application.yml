@@ -1,9 +1,9 @@
 spring:
   application.name: nsb-uz
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:data}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/nsb_uz}
+    username: ${DB_USERNAME:nsb_admin}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate.ddl-auto: update
     properties.hibernate:
@@ -21,7 +21,7 @@ server:
     include-message: always
 
 app.jwt:
-  secret: ${JWT_SECRET:nsbUzSecretKeyForJwtTokenGenerationMustBeAtLeast256BitsLong2024}
+  secret: ${JWT_SECRET}
   expiration-ms: 86400000
 
 springdoc:

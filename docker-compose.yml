@@ -1,44 +1,51 @@
-version: '3.9'
 services:
   postgres:
     image: postgres:15-alpine
     container_name: nsb-postgres
     environment:
-      POSTGRES_DB: nsb_uz
-      POSTGRES_USER: nsb_admin
-      POSTGRES_PASSWORD: nsb_secret_2024
+      POSTGRES_DB: ${POSTGRES_DB:-nsb_uz}
+      POSTGRES_USER: ${POSTGRES_USER:-nsb_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports: ['5432:5432']
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U nsb_admin -d nsb_uz']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-nsb_admin} -d ${POSTGRES_DB:-nsb_uz}']
       interval: 10s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build: { context: ./backend, dockerfile: ../docker/Dockerfile.backend }
     container_name: nsb-backend
     depends_on: { postgres: { condition: service_healthy } }
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/nsb_uz
-      DB_USERNAME: nsb_admin
-      DB_PASSWORD: nsb_secret_2024
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nsb_uz}
+      DB_USERNAME: ${POSTGRES_USER:-nsb_admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       APP_UPLOAD_DIR: /app/uploads
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@nsb.uz}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
     ports: ['8080:8080']
     volumes:
       - uploads:/app/uploads
+    restart: unless-stopped
 
   frontend:
-    build: { context: ./frontend, dockerfile: ../docker/Dockerfile.frontend }
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
     container_name: nsb-frontend
     depends_on: [backend]
-    environment: 
-      REACT_APP_API_URL: 'http://localhost:8080/api'
-      REACT_APP_BACKEND_URL: 'http://backend:8080'
-    ports: ['3000:3000']
-    volumes: ['./frontend/src:/app/src', '/app/node_modules']
+    ports: ['80:80']
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
 
 volumes:
   pgdata:
